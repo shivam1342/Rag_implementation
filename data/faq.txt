@@ -1,0 +1,8 @@
+Q: What model is used for embeddings?
+A: The project uses the SentenceTransformers model MiniLM-L6-v2.
+
+Q: What vector database is used?
+A: ChromaDB is used as the persistent vector store.
+
+Q: What is the purpose of RAG?
+A: RAG allows a language model to answer questions using external knowledge retrieved from documents.

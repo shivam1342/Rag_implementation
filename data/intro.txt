@@ -1,0 +1,6 @@
+This system is a basic Retrieval-Augmented Generation (RAG) demo. 
+It loads text files, splits them into chunks, stores embeddings in a vector database, 
+retrieves the most relevant chunks, and passes them to a language model.
+
+The purpose of this project is to understand the full RAG flow end-to-end.
+this implementation is built by Shivam Singhx.

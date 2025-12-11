@@ -1,0 +1,9 @@
+The system supports the following basic features:
+1. Document ingestion from text files.
+2. Text chunking into smaller segments.
+3. Embedding generation using SentenceTransformers.
+4. Vector storage using ChromaDB.
+5. Similarity search to retrieve relevant chunks.
+6. Response generation using the Groq Llama 3 model.
+
+This is a minimal implementation designed for learning.
