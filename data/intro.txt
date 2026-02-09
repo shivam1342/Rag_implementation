@@ -3,4 +3,4 @@ It loads text files, splits them into chunks, stores embeddings in a vector data
 retrieves the most relevant chunks, and passes them to a language model.
 
 The purpose of this project is to understand the full RAG flow end-to-end.
-this implementation is built by Shivam Singhx.
+this implementation is built by Shivam Singh.
