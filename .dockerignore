@@ -23,6 +23,7 @@ Thumbs.db
 # Git
 .git/
 .gitignore
+.github/
 
 # Logs (will be mounted as volume)
 logs/
@@ -32,15 +33,32 @@ logs/
 chroma_store/
 uploads/
 audit.db
-ARCHITECTURE.md
+
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
+test*.py
 
 # Documentation
 *.md
 !README.md
+STUDY.md
+interview.md
 
 # Env files
 .env
+.env.*
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Backups
+*.backup
+*.bak
+*.old
+
+# Static files (not needed in container)
+static/
