@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG System - Upload & Query</title>
+    <title>RAG System</title>
     <style>
         * {
             margin: 0;
@@ -11,947 +11,1111 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --purple-primary: #a78bfa;
+            --purple-light: #c4b5fd;
+            --purple-dark: #8b5cf6;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --border-color: #2a2a2a;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-            background: #212121;
-            background-image: 
-                radial-gradient(circle at 20% 50%, rgba(120, 120, 120, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(120, 120, 120, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(120, 120, 120, 0.03) 0%, transparent 50%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
-            color: #e0e0e0;
         }
 
-        .container {
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 12px;
-            max-width: 1000px;
-            width: 100%;
+        .app-container {
+            max-width: 1200px;
             margin: 0 auto;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            padding: 0;
         }
 
+        /* Header */
         .header {
-            padding: 24px 32px;
-            border-bottom: 1px solid #3a3a3a;
-            background: #252525;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        h1 {
-            color: #ffffff;
-            font-size: 1.5em;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            font-size: 1.5rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 6px;
+            color: var(--purple-light);
         }
 
-        .subtitle {
-            color: #9e9e9e;
-            font-size: 0.9em;
+        .brand-text p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
         }
 
-        /* Tabs */
-        .tabs {
+        .user-section {
             display: flex;
-            border-bottom: 1px solid #3a3a3a;
-            background: #252525;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .tab {
-            flex: 1;
-            padding: 16px;
-            text-align: center;
-            background: transparent;
-            border: none;
-            color: #9e9e9e;
-            cursor: pointer;
-            font-size: 0.95em;
-            transition: all 0.3s;
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab:hover {
-            background: #2a2a2a;
-            color: #ffffff;
-        }
-
-        .tab.active {
-            color: #4CAF50;
-            border-bottom-color: #4CAF50;
-            background: #2a2a2a;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 32px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Upload Section */
-        .upload-area {
-            border: 2px dashed #3a3a3a;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            background: #252525;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .upload-area:hover {
-            border-color: #4CAF50;
-            background: #2a2a2a;
-        }
-
-        .upload-area.dragging {
-            border-color: #4CAF50;
-            background: #2a3a2a;
-        }
-
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .upload-text {
-            color: #9e9e9e;
-            margin-bottom: 8px;
-        }
-
-        .upload-hint {
-            color: #757575;
-            font-size: 0.85em;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .file-info {
-            margin-top: 16px;
-            padding: 12px;
-            background: #2a2a2a;
+        .status-badge {
+            padding: 0.5rem 1rem;
             border-radius: 6px;
-            color: #4CAF50;
-            display: none;
+            font-size: 0.85rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
         }
 
-        /* Query Section */
-        .input-group {
-            margin-bottom: 20px;
+        .status-badge.admin {
+            border-color: var(--purple-primary);
+            color: var(--purple-light);
         }
 
-        label {
-            display: block;
-            color: #b0b0b0;
-            font-size: 0.9em;
-            margin-bottom: 8px;
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
             font-weight: 500;
         }
 
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 16px;
-            background: #252525;
-            border: 1px solid #3a3a3a;
+        .btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--purple-primary);
+        }
+
+        .btn-primary {
+            background: var(--purple-dark);
+            border-color: var(--purple-dark);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--purple-primary);
+            border-color: var(--purple-primary);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            padding: 0 2rem;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            color: var(--purple-light);
+            border-bottom-color: var(--purple-primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Chat Area */
+        .chat-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
             border-radius: 8px;
-            color: #e0e0e0;
+            max-width: 85%;
+        }
+
+        .message-user {
+            background: var(--bg-tertiary);
+            margin-left: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .message-assistant {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid var(--purple-dark);
+            border-left: 3px solid var(--purple-primary);
+        }
+
+        .message-label {
+            font-size: 0.75rem;
+            color: var(--purple-light);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .message-content {
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        textarea {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            resize: none;
             font-family: inherit;
-            font-size: 0.95em;
-            resize: vertical;
-            transition: all 0.3s;
+            font-size: 0.95rem;
+            min-height: 50px;
+            max-height: 150px;
         }
 
         textarea:focus {
             outline: none;
-            border-color: #4CAF50;
-            background: #2a2a2a;
+            border-color: var(--purple-primary);
         }
 
-        textarea::placeholder {
-            color: #757575;
-        }
-
-        button {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 500;
+        /* Upload Area */
+        .upload-zone {
+            background: var(--bg-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            width: 100%;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            background: #3a3a3a;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #9e9e9e;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        .spinner {
-            border: 3px solid #3a3a3a;
-            border-top: 3px solid #4CAF50;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .result {
-            margin-top: 24px;
-            padding: 20px;
-            background: #252525;
-            border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .result.show {
-            display: block;
-        }
-
-        .result h3 {
-            color: #4CAF50;
-            margin-bottom: 12px;
-            font-size: 1.1em;
-        }
-
-        .answer-text {
-            color: #e0e0e0;
-            line-height: 1.7;
-            margin-bottom: 16px;
-        }
-
-        .sources {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #3a3a3a;
-        }
-
-        .sources h4 {
-            color: #9e9e9e;
-            font-size: 0.85em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .source-chunk {
-            background: #2a2a2a;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border-left: 3px solid #4CAF50;
-            font-size: 0.85em;
-            color: #b0b0b0;
-        }
-
-        .meta-info {
-            display: flex;
-            gap: 20px;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #3a3a3a;
-            font-size: 0.85em;
-            color: #757575;
-        }
-
-        .error {
-            background: #3a2525;
-            border: 1px solid #5a3535;
-            color: #ff6b6b;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            display: none;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        .success {
-            background: #253a25;
-            border: 1px solid #355a35;
-            color: #4CAF50;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            display: none;
-        }
-
-        .success.show {
-            display: block;
-        }
-
-        .api-link {
-            margin-top: 24px;
-            text-align: center;
-            padding: 16px;
-            background: #252525;
-            border-radius: 8px;
-        }
-
-        .api-link a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .api-link a:hover {
-            text-decoration: underline;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #3a3a3a;
-            background: #252525;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 16px;
-            text-align: center;
-            background: transparent;
-            border: none;
-            color: #9e9e9e;
-            cursor: pointer;
-            font-size: 0.95em;
-            transition: all 0.3s;
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab:hover {
-            background: #2a2a2a;
-            color: #ffffff;
-        }
-
-        .tab.active {
-            color: #4CAF50;
-            border-bottom-color: #4CAF50;
-            background: #2a2a2a;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 32px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Upload Section */
-        .upload-area {
-            border: 2px dashed #3a3a3a;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            background: #252525;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .upload-area:hover {
-            border-color: #4CAF50;
-            background: #2a2a2a;
-        }
-
-        .upload-area.dragging {
-            border-color: #4CAF50;
-            background: #2a3a2a;
+        .upload-zone:hover {
+            border-color: var(--purple-primary);
+            background: var(--bg-tertiary);
         }
 
         .upload-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
         }
 
         .upload-text {
-            color: #9e9e9e;
-            margin-bottom: 8px;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
         }
 
         .upload-hint {
-            color: #757575;
-            font-size: 0.85em;
-        }
-
-        #fileInput {
-            display: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            opacity: 0.7;
         }
 
         .file-info {
-            margin-top: 16px;
-            padding: 12px;
-            background: #2a2a2a;
-            border-radius: 6px;
-            color: #4CAF50;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--purple-dark);
+            border-radius: 8px;
             display: none;
         }
 
-        /* Query Section */
-        .input-group {
-            margin-bottom: 20px;
+        /* Admin Panel */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        label {
-            display: block;
-            color: #b0b0b0;
-            font-size: 0.9em;
-            margin-bottom: 8px;
-            font-weight: 500;
+        .admin-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
         }
 
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 16px;
-            background: #252525;
-            border: 1px solid #3a3a3a;
+        .admin-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .admin-card-icon {
+            font-size: 1.5rem;
+        }
+
+        .admin-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--purple-light);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--purple-primary);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Utilities Grid */
+        .utilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .utility-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            color: #e0e0e0;
-            font-family: inherit;
-            font-size: 0.95em;
-            resize: vertical;
-            transition: all 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #4CAF50;
-            background: #2a2a2a;
-        }
-
-        textarea::placeholder {
-            color: #757575;
-        }
-
-        button {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 500;
+            padding: 1.25rem;
             cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
+            transition: all 0.2s;
+            text-align: left;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        .utility-btn:hover {
+            border-color: var(--purple-primary);
+            background: var(--bg-tertiary);
         }
 
-        button:active {
-            transform: translateY(0);
+        .utility-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
-        button:disabled {
-            background: #3a3a3a;
-            cursor: not-allowed;
-            transform: none;
+        .utility-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
         }
 
-        .loading {
+        .utility-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal {
             display: none;
-            text-align: center;
-            padding: 20px;
-            color: #9e9e9e;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
 
-        .loading.show {
-            display: block;
+        .modal.active {
+            display: flex;
         }
 
-        .spinner {
-            border: 3px solid #3a3a3a;
-            border-top: 3px solid #4CAF50;
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--purple-light);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--purple-primary);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            min-width: 300px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+        }
+
+        .notification.success {
+            border-color: var(--success);
+        }
+
+        .notification.error {
+            border-color: var(--error);
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--purple-primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .result {
-            margin-top: 24px;
-            padding: 20px;
-            background: #252525;
-            border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            display: none;
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .result.show {
-            display: block;
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
         }
 
-        .result h3 {
-            color: #4CAF50;
-            margin-bottom: 12px;
-            font-size: 1.1em;
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
         }
 
-        .answer-text {
-            color: #e0e0e0;
-            line-height: 1.7;
-            margin-bottom: 16px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-color);
         }
 
-        .sources {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #3a3a3a;
-        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
 
-        .sources h4 {
-            color: #9e9e9e;
-            font-size: 0.85em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+            .nav-tabs {
+                padding: 0 1rem;
+            }
 
-        .source-chunk {
-            background: #2a2a2a;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border-left: 3px solid #4CAF50;
-            font-size: 0.85em;
-            color: #b0b0b0;
-        }
-
-        .meta-info {
-            display: flex;
-            gap: 20px;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #3a3a3a;
-            font-size: 0.85em;
-            color: #757575;
-        }
-
-        .error {
-            background: #3a2525;
-            border: 1px solid #5a3535;
-            color: #ff6b6b;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            display: none;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        .success {
-            background: #253a25;
-            border: 1px solid #355a35;
-            color: #4CAF50;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            display: none;
-        }
-
-        .success.show {
-            display: block;
-        }
-
-        .api-link {
-            margin-top: 24px;
-            text-align: center;
-            padding: 16px;
-            background: #252525;
-            border-radius: 8px;
-        }
-
-        .api-link a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .api-link a:hover {
-            text-decoration: underline;
+            .main-content {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
+        <!-- Header -->
         <div class="header">
-            <h1>🤖 RAG System</h1>
-            <p class="subtitle">Upload documents and ask intelligent questions</p>
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('query')">💬 Query</button>
-                <button class="tab" onclick="switchTab('upload')">📁 Upload</button>
+            <div class="brand">
+                <span class="brand-icon">🤖</span>
+                <div class="brand-text">
+                    <h1>RAG System</h1>
+                    <p>Intelligent Document Q&A</p>
+                </div>
+            </div>
+            <div class="user-section">
+                <span id="statusBadge" class="status-badge">👤 User</span>
+                <button id="adminLoginBtn" class="btn btn-primary" onclick="showAdminLogin()">Admin</button>
+                <button id="adminLogoutBtn" class="btn btn-danger" style="display: none;" onclick="logoutAdmin()">Logout</button>
             </div>
         </div>
 
-        <!-- Query Tab -->
-        <div id="queryTab" class="tab-content active">
-            <div class="chat-area" id="chatArea">
-                <div class="empty-state" id="emptyState">
-                    <div class="empty-state-icon">💬</div>
-                    <div class="empty-state-text">Start a conversation</div>
-                    <div class="empty-state-subtext">Ask me anything about your documents</div>
-                </div>
-            </div>
-
-            <div class="input-section">
-                <div class="error" id="queryError"></div>
-                <div class="input-wrapper">
-                    <textarea id="query" placeholder="Type your question here..." rows="1"></textarea>
-                    <button onclick="askQuestion()" id="sendButton">Send</button>
-                </div>
-            </div>
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('query')">💬 Chat</button>
+            <button class="nav-tab" onclick="switchTab('upload')">📁 Upload</button>
+            <button class="nav-tab" onclick="switchTab('utilities')">⚡ Utilities</button>
+            <button id="adminTab" class="nav-tab" style="display: none;" onclick="switchTab('admin')">👑 Admin</button>
         </div>
 
-        <!-- Upload Tab -->
-        <div id="uploadTab" class="tab-content" style="display: none;">
-            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">📄</div>
-                <div class="upload-text">Click to upload or drag and drop</div>
-                <div class="upload-hint">Supports TXT, PDF, DOCX (Max 10MB)</div>
-            </div>
-            
-            <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display: none;" onchange="handleFileSelect(event)">
-            
-            <div style="padding: 32px; max-width: 600px; margin: 0 auto;">
-                <div class="error" id="uploadError" style="display: none;"></div>
-                <div class="success" id="uploadSuccess" style="display: none;"></div>
-                
-                <div id="fileInfo" style="display: none; padding: 16px; background: #253a25; border: 1px solid #4CAF50; border-radius: 8px; color: #4CAF50; margin-top: 20px;"></div>
-                
-                <div id="progressBar" style="display: none; width: 100%; height: 4px; background: #3a3a3a; border-radius: 2px; margin-top: 16px; overflow: hidden;">
-                    <div id="progressFill" style="height: 100%; background: linear-gradient(90deg, #4CAF50, #45a049); width: 0%; transition: width 0.3s;"></div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Query Tab -->
+            <div id="queryPane" class="tab-pane active">
+                <div class="chat-container">
+                    <div id="chatMessages" class="chat-messages">
+                        <div id="emptyState" class="empty-state">
+                            <div class="empty-icon">💬</div>
+                            <div>Ask anything about your documents</div>
+                        </div>
+                    </div>
+                    <div class="input-container">
+                        <div class="input-wrapper">
+                            <textarea id="queryInput" placeholder="Ask a question..." rows="1"></textarea>
+                            <button class="btn btn-primary" onclick="sendQuery()">Send</button>
+                        </div>
+                    </div>
                 </div>
-                
-                <button id="uploadButton" onclick="uploadFile()" style="display: none; margin-top: 16px; width: 100%;">Upload File</button>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="uploadPane" class="tab-pane">
+                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Click or drag files to upload</div>
+                    <div class="upload-hint">Supports TXT, PDF, DOCX • Max 10MB</div>
+                    <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display: none;">
+                </div>
+                <div id="fileInfo" class="file-info"></div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button id="uploadBtn" class="btn btn-primary" style="display: none;" onclick="uploadFile()">Upload File</button>
+                </div>
+            </div>
+
+            <!-- Utilities Tab -->
+            <div id="utilitiesPane" class="tab-pane">
+                <h2 style="margin-bottom: 1.5rem; color: var(--purple-light);">System Information</h2>
+                <div class="utilities-grid">
+                    <div class="utility-btn" onclick="viewHealth()">
+                        <div class="utility-icon">❤️</div>
+                        <div class="utility-title">Health Check</div>
+                        <div class="utility-desc">View system health status</div>
+                    </div>
+                    <div class="utility-btn" onclick="viewStats()">
+                        <div class="utility-icon">📊</div>
+                        <div class="utility-title">Statistics</div>
+                        <div class="utility-desc">System usage and metrics</div>
+                    </div>
+                    <div class="utility-btn" onclick="viewLogs()">
+                        <div class="utility-icon">📜</div>
+                        <div class="utility-title">Query Logs</div>
+                        <div class="utility-desc">Recent query history</div>
+                    </div>
+                    <div class="utility-btn" onclick="viewDocs()">
+                        <div class="utility-icon">📚</div>
+                        <div class="utility-title">API Docs</div>
+                        <div class="utility-desc">Interactive API documentation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="adminPane" class="tab-pane">
+                <h2 style="margin-bottom: 1.5rem; color: var(--purple-light);">Admin Dashboard</h2>
+                <div class="admin-grid" id="adminStats">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <span class="admin-card-icon">📚</span>
+                            <span class="admin-card-title">Documents</span>
+                        </div>
+                        <div class="stat-value" id="docsCount">-</div>
+                        <div class="stat-label">Total indexed documents</div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <span class="admin-card-icon">💬</span>
+                            <span class="admin-card-title">Queries</span>
+                        </div>
+                        <div class="stat-value" id="queriesCount">-</div>
+                        <div class="stat-label">Total queries processed</div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <span class="admin-card-icon">⚡</span>
+                            <span class="admin-card-title">Cache Hit Rate</span>
+                        </div>
+                        <div class="stat-value" id="cacheHitRate">-</div>
+                        <div class="stat-label">Query response cache</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem; color: var(--purple-light);">Admin Actions</h3>
+                <div class="utilities-grid">
+                    <div class="utility-btn" onclick="clearCache()">
+                        <div class="utility-icon">🗑️</div>
+                        <div class="utility-title">Clear Cache</div>
+                        <div class="utility-desc">Reset query response cache</div>
+                    </div>
+                    <div class="utility-btn" onclick="cleanupOldSessions()">
+                        <div class="utility-icon">🧹</div>
+                        <div class="utility-title">Cleanup Sessions</div>
+                        <div class="utility-desc">Remove expired user documents</div>
+                    </div>
+                    <div class="utility-btn" onclick="viewFullLogs()">
+                        <div class="utility-icon">📋</div>
+                        <div class="utility-title">Full Logs</div>
+                        <div class="utility-desc">View all query logs</div>
+                    </div>
+                    <div class="utility-btn" onclick="viewHealth()">
+                        <div class="utility-icon">🔧</div>
+                        <div class="utility-title">System Health</div>
+                        <div class="utility-desc">Detailed health metrics</div>
+                    </div>
+                    <div class="utility-btn" onclick="viewDocs()">
+                        <div class="utility-icon">🔗</div>
+                        <div class="utility-title">API Docs</div>
+                        <div class="utility-desc">OpenAPI documentation</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modals -->
+    <!-- Admin Login Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Admin Login</span>
+                <button class="modal-close" onclick="closeAdminLogin()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="submitAdminLogin()">Login</button>
+                    <button class="btn" style="flex: 1;" onclick="closeAdminLogin()">Cancel</button>
+                </div>
+                <div id="adminError" style="color: var(--error); margin-top: 1rem; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="infoModalTitle">Information</span>
+                <button class="modal-close" onclick="closeInfoModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <pre id="infoModalContent" style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: var(--text-primary);"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
     <script>
-        // Tab Management
-        function switchTab(tab) {
-            const tabs = document.querySelectorAll('.tab');
-            const queryTab = document.getElementById('queryTab');
-            const uploadTab = document.getElementById('uploadTab');
-            
-            tabs.forEach(t => t.classList.remove('active'));
-            
-            if (tab === 'query') {
-                tabs[0].classList.add('active');
-                queryTab.classList.add('active');
-                queryTab.style.display = 'flex';
-                uploadTab.classList.remove('active');
-                uploadTab.style.display = 'none';
-                queryInput.focus();
-            } else {
-                tabs[1].classList.add('active');
-                uploadTab.classList.add('active');
-                uploadTab.style.display = 'block';
-                queryTab.classList.remove('active');
-                queryTab.style.display = 'none';
+        // Session Management
+        let isAdmin = false;
+        let sessionId = null;
+
+        // Initialize
+        async function initializeSession() {
+            try {
+                const statusResponse = await fetch('/api/session/status', {
+                    credentials: 'include'
+                });
+                const status = await statusResponse.json();
+                
+                isAdmin = status.is_admin;
+                sessionId = status.session_id;
+
+                if (!status.has_session) {
+                    const createResponse = await fetch('/api/session/create', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    const data = await createResponse.json();
+                    sessionId = data.session_id;
+                }
+
+                updateUI();
+            } catch (error) {
+                console.error('Error initializing session:', error);
             }
         }
 
-        // Query Tab Logic
-        const chatArea = document.getElementById('chatArea');
-        const emptyState = document.getElementById('emptyState');
-        const queryInput = document.getElementById('query');
-        const queryErrorDiv = document.getElementById('queryError');
-        const sendButton = document.getElementById('sendButton');
+        function updateUI() {
+            const statusBadge = document.getElementById('statusBadge');
+            const loginBtn = document.getElementById('adminLoginBtn');
+            const logoutBtn = document.getElementById('adminLogoutBtn');
+            const adminTab = document.getElementById('adminTab');
 
-        // Auto-resize textarea
+            if (isAdmin) {
+                statusBadge.textContent = '👑 Admin';
+                statusBadge.classList.add('admin');
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                adminTab.style.display = 'block';
+                loadAdminStats();
+            } else {
+                statusBadge.textContent = '👤 User';
+                statusBadge.classList.remove('admin');
+                loginBtn.style.display = 'block';
+                logoutBtn.style.display = 'none';
+                adminTab.style.display = 'none';
+            }
+        }
+
+        // Admin Login
+        function showAdminLogin() {
+            document.getElementById('adminModal').classList.add('active');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminError').style.display = 'none';
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('adminModal').classList.remove('active');
+        }
+
+        async function submitAdminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            const errorEl = document.getElementById('adminError');
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    isAdmin = true;
+                    updateUI();
+                    closeAdminLogin();
+                    showNotification('Admin login successful', 'success');
+                    switchTab('admin');
+                } else {
+                    errorEl.textContent = 'Invalid password';
+                    errorEl.style.display = 'block';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Login failed: ' + error.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        async function logoutAdmin() {
+            try {
+                await fetch('/api/admin/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                isAdmin = false;
+                updateUI();
+                showNotification('Logged out successfully', 'success');
+                switchTab('query');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // Tab Management
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.nav-tab');
+            const panes = document.querySelectorAll('.tab-pane');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            panes.forEach(p => p.classList.remove('active'));
+
+            const tabMap = {
+                'query': ['queryPane', 0],
+                'upload': ['uploadPane', 1],
+                'utilities': ['utilitiesPane', 2],
+                'admin': ['adminPane', 3]
+            };
+
+            if (tabMap[tab]) {
+                document.getElementById(tabMap[tab][0]).classList.add('active');
+                tabs[tabMap[tab][1]].classList.add('active');
+
+                if (tab === 'admin' && isAdmin) {
+                    loadAdminStats();
+                }
+            }
+        }
+
+        // Query/Chat
+        const queryInput = document.getElementById('queryInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const emptyState = document.getElementById('emptyState');
+
         queryInput.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
 
-        async function askQuestion() {
-            const query = queryInput.value.trim();
-
-            if (!query) {
-                showError('Please enter a question.', 'query');
-                return;
+        queryInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendQuery();
             }
+        });
 
-            // Hide empty state
+        async function sendQuery() {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
             emptyState.style.display = 'none';
-            queryErrorDiv.style.display = 'none';
 
             // Add user message
-            addMessage('You', query, 'user-message');
-
-            // Clear input
+            addMessage('You', query, true);
             queryInput.value = '';
             queryInput.style.height = 'auto';
 
-            // Show loading
+            // Add loading indicator
             const loadingId = addLoading();
-            sendButton.disabled = true;
 
             try {
                 const response = await fetch('/api/query', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: query })
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ query })
                 });
 
                 const data = await response.json();
                 removeLoading(loadingId);
 
                 if (response.ok) {
-                    addMessage('Assistant', data.answer, 'assistant-message');
+                    addMessage('Assistant', data.answer, false);
                 } else {
-                    showError(data.detail || 'An error occurred.', 'query');
+                    showNotification(data.detail || 'Query failed', 'error');
                 }
             } catch (error) {
                 removeLoading(loadingId);
-                showError('Failed to connect to the server.', 'query');
-            } finally {
-                sendButton.disabled = false;
-                queryInput.focus();
+                showNotification('Failed to connect to server', 'error');
             }
         }
 
-        function addMessage(label, content, className) {
+        function addMessage(label, content, isUser) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            messageDiv.innerHTML = `
-                <div class="message-label">${label}</div>
-                <div class="${className}">${escapeHtml(content)}</div>
-            `;
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
+            messageDiv.className = `message ${isUser ? 'message-user' : 'message-assistant'}`;
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            labelDiv.textContent = label;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(labelDiv);
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function addLoading() {
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'loading show';
-            loadingDiv.innerHTML = '<div class="spinner"></div> Thinking...';
+            loadingDiv.className = 'message message-assistant';
+            loadingDiv.innerHTML = '<div class="loading"></div>';
             const id = 'loading-' + Date.now();
             loadingDiv.id = id;
-            chatArea.appendChild(loadingDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
             return id;
         }
 
         function removeLoading(id) {
-            const loadingDiv = document.getElementById(id);
-            if (loadingDiv) {
-                loadingDiv.remove();
-            }
+            const el = document.getElementById(id);
+            if (el) el.remove();
         }
 
-        // Upload Tab Logic
-        const uploadArea = document.getElementById('uploadArea');
+        // File Upload
         const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
-        const uploadButton = document.getElementById('uploadButton');
-        const uploadErrorDiv = document.getElementById('uploadError');
-        const uploadSuccessDiv = document.getElementById('uploadSuccess');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-
+        const uploadBtn = document.getElementById('uploadBtn');
         let selectedFile = null;
 
-        // Drag and drop
-        uploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            uploadArea.classList.add('dragging');
-        });
-
-        uploadArea.addEventListener('dragleave', function() {
-            uploadArea.classList.remove('dragging');
-        });
-
-        uploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadArea.classList.remove('dragging');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
-        });
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
             if (file) {
-                handleFile(file);
+                selectedFile = file;
+                fileInfo.innerHTML = `<strong>Selected:</strong> ${file.name} (${formatFileSize(file.size)})`;
+                fileInfo.style.display = 'block';
+                uploadBtn.style.display = 'inline-block';
             }
-        }
-
-        function handleFile(file) {
-            uploadErrorDiv.style.display = 'none';
-            uploadSuccessDiv.style.display = 'none';
-
-            // Validate file size (10MB)
-            if (file.size > 10 * 1024 * 1024) {
-                showError('File size exceeds 10MB limit.', 'upload');
-                return;
-            }
-
-            // Validate file type
-            const allowedTypes = ['.txt', '.pdf', '.docx'];
-            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
-            if (!allowedTypes.includes(fileExt)) {
-                showError('Invalid file type. Only TXT, PDF, and DOCX are supported.', 'upload');
-                return;
-            }
-
-            selectedFile = file;
-            fileInfo.innerHTML = `<strong>Selected:</strong> ${escapeHtml(file.name)} (${formatFileSize(file.size)})`;
-            fileInfo.style.display = 'block';
-            uploadButton.style.display = 'block';
-        }
+        });
 
         async function uploadFile() {
-            if (!selectedFile) {
-                showError('Please select a file first.', 'upload');
-                return;
-            }
+            if (!selectedFile) return;
 
             const formData = new FormData();
             formData.append('file', selectedFile);
 
-            uploadButton.disabled = true;
-            progressBar.style.display = 'block';
-            progressFill.style.width = '50%';
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="loading"></span> Uploading...';
 
             try {
                 const response = await fetch('/api/upload', {
                     method: 'POST',
+                    credentials: 'include',
                     body: formData
                 });
 
                 const data = await response.json();
-                progressFill.style.width = '100%';
 
                 if (response.ok) {
-                    showSuccess(`✓ File "${data.filename}" uploaded successfully! Processing in background...`, 'upload');
-                    
-                    // Reset form
+                    showNotification(data.message, 'success');
                     selectedFile = null;
                     fileInput.value = '';
                     fileInfo.style.display = 'none';
-                    uploadButton.style.display = 'none';
-                    
-                    setTimeout(() => {
-                        progressBar.style.display = 'none';
-                        progressFill.style.width = '0%';
-                    }, 2000);
+                    uploadBtn.style.display = 'none';
                 } else {
-                    showError(data.detail || 'Upload failed.', 'upload');
-                    progressBar.style.display = 'none';
-                    progressFill.style.width = '0%';
+                    showNotification(data.detail || 'Upload failed', 'error');
                 }
             } catch (error) {
-                showError('Failed to connect to the server.', 'upload');
-                progressBar.style.display = 'none';
-                progressFill.style.width = '0%';
+                showNotification('Upload failed: ' + error.message, 'error');
             } finally {
-                uploadButton.disabled = false;
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload File';
             }
         }
 
-        // Utility Functions
-        function showError(message, context) {
-            const errorDiv = context === 'query' ? queryErrorDiv : uploadErrorDiv;
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            errorDiv.classList.add('show');
+        // Utilities
+        async function viewHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                showInfoModal('System Health', JSON.stringify(data, null, 2));
+            } catch (error) {
+                showNotification('Failed to fetch health data', 'error');
+            }
+        }
+
+        async function viewStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                showInfoModal('System Statistics', JSON.stringify(data, null, 2));
+            } catch (error) {
+                showNotification('Failed to fetch stats', 'error');
+            }
+        }
+
+        async function viewLogs() {
+            try {
+                const response = await fetch('/api/logs?limit=10');
+                const data = await response.json();
+                showInfoModal('Recent Query Logs', JSON.stringify(data, null, 2));
+            } catch (error) {
+                showNotification('Failed to fetch logs', 'error');
+            }
+        }
+
+        async function viewFullLogs() {
+            try {
+                const response = await fetch('/api/logs?limit=50');
+                const data = await response.json();
+                showInfoModal('Full Query Logs (50)', JSON.stringify(data, null, 2));
+            } catch (error) {
+                showNotification('Failed to fetch logs', 'error');
+            }
+        }
+
+        function viewDocs() {
+            window.open('/docs', '_blank');
+        }
+
+        // Admin Functions
+        async function loadAdminStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                document.getElementById('docsCount').textContent = data.total_documents || 0;
+                document.getElementById('queriesCount').textContent = data.total_queries || 0;
+                document.getElementById('cacheHitRate').textContent = 
+                    (data.cache_stats?.hit_rate_percent || 0) + '%';
+            } catch (error) {
+                console.error('Failed to load admin stats:', error);
+            }
+        }
+
+        async function clearCache() {
+            if (!confirm('Are you sure you want to clear the cache?')) return;
+
+            try {
+                const response = await fetch('/api/cache/clear', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    showNotification('Cache cleared successfully', 'success');
+                    loadAdminStats();
+                } else {
+                    showNotification('Failed to clear cache', 'error');
+                }
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function cleanupOldSessions() {
+            if (!confirm('This will remove all expired user session documents. Continue?')) return;
+
+            try {
+                const response = await fetch('/api/admin/cleanup-old-sessions', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showNotification(`Cleanup complete: ${data.deleted_count} documents removed`, 'success');
+                    loadAdminStats();
+                } else {
+                    const error = await response.json();
+                    showNotification(error.detail || 'Cleanup failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Modal Functions
+        function showInfoModal(title, content) {
+            document.getElementById('infoModalTitle').textContent = title;
+            document.getElementById('infoModalContent').textContent = content;
+            document.getElementById('infoModal').classList.add('active');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').classList.remove('active');
+        }
+
+        // Notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+
             setTimeout(() => {
-                errorDiv.style.display = 'none';
-                errorDiv.classList.remove('show');
-            }, 5000);
+                notification.style.display = 'none';
+            }, 3000);
         }
 
-        function showSuccess(message, context) {
-            const successDiv = uploadSuccessDiv;
-            successDiv.textContent = message;
-            successDiv.style.display = 'block';
-            successDiv.classList.add('show');
-            setTimeout(() => {
-                successDiv.style.display = 'none';
-                successDiv.classList.remove('show');
-            }, 5000);
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
+        // Utilities
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
         }
 
-        // Allow Enter to submit (Shift+Enter for new line)
-        queryInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                askQuestion();
-            }
-        });
-
-        // Focus input on load
-        queryInput.focus();
+        // Initialize on load
+        initializeSession();
     </script>
 </body>
 </html>

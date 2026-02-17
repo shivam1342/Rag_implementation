@@ -58,6 +58,15 @@ async def startup_event():
     """Run on application startup"""
     logger.info(f"Starting {settings.APP_NAME} v{settings.VERSION}")
     logger.info(f"Docs available at /docs")
+    
+    # Clean up old user session documents
+    try:
+        from app.services.vector_service import vector_service
+        deleted = vector_service.cleanup_old_sessions(settings.SESSION_EXPIRY)
+        if deleted > 0:
+            logger.info(f"Startup cleanup: Removed {deleted} expired user session documents")
+    except Exception as e:
+        logger.error(f"Error during startup cleanup: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_event():

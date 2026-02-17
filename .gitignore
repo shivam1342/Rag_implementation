@@ -21,11 +21,13 @@ logs/
 audit.db
 plan.md
 STUDY.md
+ARCHITECTURE.md
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+.md
 
 # OS
 .DS_Store

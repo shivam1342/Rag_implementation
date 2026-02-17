@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG System - Upload & Query</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: #212121;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(120, 120, 120, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(120, 120, 120, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(120, 120, 120, 0.03) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #3a3a3a;
+            background: #252525;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: #9e9e9e;
+            font-size: 0.9em;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #3a3a3a;
+            background: #252525;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: #9e9e9e;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab:hover {
+            background: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+            background: #2a2a2a;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 32px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            border: 2px dashed #3a3a3a;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #252525;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background: #2a2a2a;
+        }
+
+        .upload-area.dragging {
+            border-color: #4CAF50;
+            background: #2a3a2a;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .upload-text {
+            color: #9e9e9e;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            color: #757575;
+            font-size: 0.85em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: #2a2a2a;
+            border-radius: 6px;
+            color: #4CAF50;
+            display: none;
+        }
+
+        /* Query Section */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #b0b0b0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 0.95em;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: #2a2a2a;
+        }
+
+        textarea::placeholder {
+            color: #757575;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #3a3a3a;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #9e9e9e;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #4CAF50;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .answer-text {
+            color: #e0e0e0;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .sources {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .sources h4 {
+            color: #9e9e9e;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .source-chunk {
+            background: #2a2a2a;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #4CAF50;
+            font-size: 0.85em;
+            color: #b0b0b0;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #3a3a3a;
+            font-size: 0.85em;
+            color: #757575;
+        }
+
+        .error {
+            background: #3a2525;
+            border: 1px solid #5a3535;
+            color: #ff6b6b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #253a25;
+            border: 1px solid #355a35;
+            color: #4CAF50;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .api-link {
+            margin-top: 24px;
+            text-align: center;
+            padding: 16px;
+            background: #252525;
+            border-radius: 8px;
+        }
+
+        .api-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .api-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #3a3a3a;
+            background: #252525;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: #9e9e9e;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab:hover {
+            background: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+            background: #2a2a2a;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 32px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            border: 2px dashed #3a3a3a;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #252525;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background: #2a2a2a;
+        }
+
+        .upload-area.dragging {
+            border-color: #4CAF50;
+            background: #2a3a2a;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .upload-text {
+            color: #9e9e9e;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            color: #757575;
+            font-size: 0.85em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: #2a2a2a;
+            border-radius: 6px;
+            color: #4CAF50;
+            display: none;
+        }
+
+        /* Query Section */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #b0b0b0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 0.95em;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: #2a2a2a;
+        }
+
+        textarea::placeholder {
+            color: #757575;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #3a3a3a;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #9e9e9e;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #4CAF50;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .answer-text {
+            color: #e0e0e0;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .sources {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .sources h4 {
+            color: #9e9e9e;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .source-chunk {
+            background: #2a2a2a;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #4CAF50;
+            font-size: 0.85em;
+            color: #b0b0b0;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #3a3a3a;
+            font-size: 0.85em;
+            color: #757575;
+        }
+
+        .error {
+            background: #3a2525;
+            border: 1px solid #5a3535;
+            color: #ff6b6b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #253a25;
+            border: 1px solid #355a35;
+            color: #4CAF50;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .api-link {
+            margin-top: 24px;
+            text-align: center;
+            padding: 16px;
+            background: #252525;
+            border-radius: 8px;
+        }
+
+        .api-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .api-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>🤖 RAG System</h1>
+                    <p class="subtitle">Upload documents and ask intelligent questions</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="sessionStatus" style="font-size: 0.85em; color: #9e9e9e;"></span>
+                    <button id="adminLoginBtn" onclick="showAdminLogin()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">Admin Login</button>
+                    <button id="adminLogoutBtn" onclick="logoutAdmin()" style="display: none; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">Logout</button>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('query')">💬 Query</button>
+                <button class="tab" onclick="switchTab('upload')">📁 Upload</button>
+            </div>
+        </div>
+
+        <!-- Admin Login Modal -->
+        <div id="adminModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: #2a2a2a; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%;">
+                <h2 style="margin-bottom: 20px; color: #fff;">Admin Login</h2>
+                <input type="password" id="adminPassword" placeholder="Enter admin password" style="width: 100%; padding: 12px; border: 1px solid #3a3a3a; background: #1a1a1a; color: #fff; border-radius: 4px; margin-bottom: 15px; font-size: 1em;">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="submitAdminLogin()" style="flex: 1; padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Login</button>
+                    <button onclick="closeAdminLogin()" style="flex: 1; padding: 12px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                </div>
+                <div id="adminError" style="color: #f44336; margin-top: 10px; display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Query Tab -->
+        <div id="queryTab" class="tab-content active">
+            <div class="chat-area" id="chatArea">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-text">Start a conversation</div>
+                    <div class="empty-state-subtext">Ask me anything about your documents</div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="error" id="queryError"></div>
+                <div class="input-wrapper">
+                    <textarea id="query" placeholder="Type your question here..." rows="1"></textarea>
+                    <button onclick="askQuestion()" id="sendButton">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="uploadTab" class="tab-content" style="display: none;">
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Click to upload or drag and drop</div>
+                <div class="upload-hint">Supports TXT, PDF, DOCX (Max 10MB)</div>
+            </div>
+            
+            <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display: none;" onchange="handleFileSelect(event)">
+            
+            <div style="padding: 32px; max-width: 600px; margin: 0 auto;">
+                <div class="error" id="uploadError" style="display: none;"></div>
+                <div class="success" id="uploadSuccess" style="display: none;"></div>
+                
+                <div id="fileInfo" style="display: none; padding: 16px; background: #253a25; border: 1px solid #4CAF50; border-radius: 8px; color: #4CAF50; margin-top: 20px;"></div>
+                
+                <div id="progressBar" style="display: none; width: 100%; height: 4px; background: #3a3a3a; border-radius: 2px; margin-top: 16px; overflow: hidden;">
+                    <div id="progressFill" style="height: 100%; background: linear-gradient(90deg, #4CAF50, #45a049); width: 0%; transition: width 0.3s;"></div>
+                </div>
+                
+                <button id="uploadButton" onclick="uploadFile()" style="display: none; margin-top: 16px; width: 100%;">Upload File</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Session Management
+        let isAdmin = false;
+        let sessionId = null;
+
+        // Initialize session on page load
+        async function initializeSession() {
+            try {
+                // Check existing session status
+                const statusResponse = await fetch('/api/session/status', {
+                    credentials: 'include'
+                });
+                const status = await statusResponse.json();
+                
+                isAdmin = status.is_admin;
+                sessionId = status.session_id;
+
+                // If no session exists, create one
+                if (!status.has_session) {
+                    const createResponse = await fetch('/api/session/create', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    const data = await createResponse.json();
+                    sessionId = data.session_id;
+                }
+
+                updateSessionUI();
+            } catch (error) {
+                console.error('Error initializing session:', error);
+            }
+        }
+
+        // Update UI based on session status
+        function updateSessionUI() {
+            const statusEl = document.getElementById('sessionStatus');
+            const loginBtn = document.getElementById('adminLoginBtn');
+            const logoutBtn = document.getElementById('adminLogoutBtn');
+
+            if (isAdmin) {
+                statusEl.textContent = '👑 Admin Mode';
+                statusEl.style.color = '#4CAF50';
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'block';
+            } else {
+                statusEl.textContent = '👤 User Session';
+                statusEl.style.color = '#9e9e9e';
+                loginBtn.style.display = 'block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // Admin login modal functions
+        function showAdminLogin() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminError').style.display = 'none';
+            document.getElementById('adminPassword').focus();
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        async function submitAdminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            const errorEl = document.getElementById('adminError');
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    isAdmin = true;
+                    updateSessionUI();
+                    closeAdminLogin();
+                    showSuccess('Admin login successful! Your uploads will be persistent.');
+                } else {
+                    errorEl.textContent = 'Invalid password';
+                    errorEl.style.display = 'block';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Login failed: ' + error.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        async function logoutAdmin() {
+            try {
+                await fetch('/api/admin/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                isAdmin = false;
+                updateSessionUI();
+                showSuccess('Admin logged out');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // Call on page load
+        initializeSession();
+
+        // Tab Management
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            const queryTab = document.getElementById('queryTab');
+            const uploadTab = document.getElementById('uploadTab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'query') {
+                tabs[0].classList.add('active');
+                queryTab.classList.add('active');
+                queryTab.style.display = 'flex';
+                uploadTab.classList.remove('active');
+                uploadTab.style.display = 'none';
+                queryInput.focus();
+            } else {
+                tabs[1].classList.add('active');
+                uploadTab.classList.add('active');
+                uploadTab.style.display = 'block';
+                queryTab.classList.remove('active');
+                queryTab.style.display = 'none';
+            }
+        }
+
+        // Query Tab Logic
+        const chatArea = document.getElementById('chatArea');
+        const emptyState = document.getElementById('emptyState');
+        const queryInput = document.getElementById('query');
+        const queryErrorDiv = document.getElementById('queryError');
+        const sendButton = document.getElementById('sendButton');
+
+        // Auto-resize textarea
+        queryInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        async function askQuestion() {
+            const query = queryInput.value.trim();
+
+            if (!query) {
+                showError('Please enter a question.', 'query');
+                return;
+            }
+
+            // Hide empty state
+            emptyState.style.display = 'none';
+            queryErrorDiv.style.display = 'none';
+
+            // Add user message
+            addMessage('You', query, 'user-message');
+
+            // Clear input
+            queryInput.value = '';
+            queryInput.style.height = 'auto';
+
+            // Show loading
+            const loadingId = addLoading();
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+                removeLoading(loadingId);
+
+                if (response.ok) {
+                    addMessage('Assistant', data.answer, 'assistant-message');
+                } else {
+                    showError(data.detail || 'An error occurred.', 'query');
+                }
+            } catch (error) {
+                removeLoading(loadingId);
+                showError('Failed to connect to the server.', 'query');
+            } finally {
+                sendButton.disabled = false;
+                queryInput.focus();
+            }
+        }
+
+        function addMessage(label, content, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-label">${label}</div>
+                <div class="${className}">${escapeHtml(content)}</div>
+            `;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function addLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading show';
+            loadingDiv.innerHTML = '<div class="spinner"></div> Thinking...';
+            const id = 'loading-' + Date.now();
+            loadingDiv.id = id;
+            chatArea.appendChild(loadingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return id;
+        }
+
+        function removeLoading(id) {
+            const loadingDiv = document.getElementById(id);
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        // Upload Tab Logic
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadButton = document.getElementById('uploadButton');
+        const uploadErrorDiv = document.getElementById('uploadError');
+        const uploadSuccessDiv = document.getElementById('uploadSuccess');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+
+        let selectedFile = null;
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragging');
+        });
+
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.classList.remove('dragging');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragging');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            uploadErrorDiv.style.display = 'none';
+            uploadSuccessDiv.style.display = 'none';
+
+            // Validate file size (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size exceeds 10MB limit.', 'upload');
+                return;
+            }
+
+            // Validate file type
+            const allowedTypes = ['.txt', '.pdf', '.docx'];
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+            if (!allowedTypes.includes(fileExt)) {
+                showError('Invalid file type. Only TXT, PDF, and DOCX are supported.', 'upload');
+                return;
+            }
+
+            selectedFile = file;
+            fileInfo.innerHTML = `<strong>Selected:</strong> ${escapeHtml(file.name)} (${formatFileSize(file.size)})`;
+            fileInfo.style.display = 'block';
+            uploadButton.style.display = 'block';
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) {
+                showError('Please select a file first.', 'upload');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            uploadButton.disabled = true;
+            progressBar.style.display = 'block';
+            progressFill.style.width = '50%';
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+
+                const data = await response.json();
+                progressFill.style.width = '100%';
+
+                if (response.ok) {
+                    showSuccess(`✓ File "${data.filename}" uploaded successfully! Processing in background...`, 'upload');
+                    
+                    // Reset form
+                    selectedFile = null;
+                    fileInput.value = '';
+                    fileInfo.style.display = 'none';
+                    uploadButton.style.display = 'none';
+                    
+                    setTimeout(() => {
+                        progressBar.style.display = 'none';
+                        progressFill.style.width = '0%';
+                    }, 2000);
+                } else {
+                    showError(data.detail || 'Upload failed.', 'upload');
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }
+            } catch (error) {
+                showError('Failed to connect to the server.', 'upload');
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+            } finally {
+                uploadButton.disabled = false;
+            }
+        }
+
+        // Utility Functions
+        function showError(message, context) {
+            const errorDiv = context === 'query' ? queryErrorDiv : uploadErrorDiv;
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            errorDiv.classList.add('show');
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+                errorDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        function showSuccess(message, context) {
+            const successDiv = uploadSuccessDiv;
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            successDiv.classList.add('show');
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                successDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Allow Enter to submit (Shift+Enter for new line)
+        queryInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+
+        // Focus input on load
+        queryInput.focus();
+    </script>
+</body>
+</html>

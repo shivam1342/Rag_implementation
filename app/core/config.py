@@ -40,6 +40,12 @@ class Settings:
     # Audit Log Settings
     AUDIT_DB: str = "audit.db"
     
+    # Session & Multi-User Settings
+    SESSION_COOKIE_NAME: str = "rag_session"
+    SESSION_EXPIRY: int = 3600 * 24  # 24 hours in seconds
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "admin123")  # Change in production!
+    ADMIN_SESSION_KEY: str = "rag_admin_session"
+    
     # Logging
     LOG_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"

@@ -1,5 +1,6 @@
 # app/api/routes/query.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Cookie
+from typing import Optional
 import time
 from app.models.schemas import QueryRequest, QueryResponse
 from app.services.vector_service import vector_service
@@ -11,22 +12,23 @@ from app.core.logger import logger
 router = APIRouter()
 
 @router.post("/query", response_model=QueryResponse)
-async def query_rag(request: QueryRequest):
+async def query_rag(request: QueryRequest, rag_session: Optional[str] = Cookie(None)):
     """
     Query the RAG system with a question.
     Returns an answer based on indexed documents with source tracking.
+    Session-aware: Users see their own documents + admin documents.
     """
     start_time = time.time()
     
     try:
-        # Check cache first
-        cached_response = cache_service.get(request.query)
+        # Check cache first (session-aware)
+        cached_response = cache_service.get(request.query, session_id=rag_session)
         if cached_response:
             logger.info("Returning cached response")
             return cached_response
         
-        # Search for relevant chunks
-        search_results = vector_service.search(request.query)
+        # Search for relevant chunks with session filtering
+        search_results = vector_service.search(request.query, session_id=rag_session)
         chunks = search_results["documents"]
         chunk_ids = search_results["ids"]
         
@@ -50,8 +52,8 @@ async def query_rag(request: QueryRequest):
             response_time_ms=response_time_ms
         )
         
-        # Cache the response
-        cache_service.set(request.query, response)
+        # Cache the response (session-aware)
+        cache_service.set(request.query, response, session_id=rag_session)
         
         # Log to audit database
         audit_db.log_query(

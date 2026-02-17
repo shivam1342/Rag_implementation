@@ -4,15 +4,15 @@ A **scalable, production-ready RAG (Retrieval-Augmented Generation)** system wit
 
 ## ✨ Key Features
 
-- 📁 **File Upload** - Upload documents (TXT, PDF*, DOCX*) with async processing
+- 📁 **Multi-Format Upload** - Upload TXT, PDF, DOCX with async processing
 - 🔍 **Semantic Search** - Find relevant content using vector embeddings
-- 💾 **Dual Caching** - Embedding cache + query response cache
+- 👥 **Multi-User Sessions** - Session-based isolation with admin persistent storage
+- 💾 **Smart Caching** - Embedding cache + query response cache with hit/miss metrics
 - 📊 **Audit Logging** - Track queries, sources, and response times in SQLite
 - 🔄 **Background Processing** - Non-blocking file processing
-- 📈 **Observability** - Health checks, stats, and query logs
+- 📈 **Observability** - Health checks, stats, cache metrics, and query logs
 - 🎨 **Auto API Docs** - Interactive Swagger UI at `/docs`
-
-*PDF and DOCX support coming soon
+- 🐳 **Docker Ready** - Full containerization with docker-compose
 
 ## 🏗️ Architecture
 
@@ -99,14 +99,9 @@ GROQ_API_KEY=your_groq_api_key_here
 
 Get your API key from [Groq Console](https://console.groq.com/)
 
-### 3. Build Index (Optional)
+### 3. Run the Application
 
-If you have documents in `data/` folder:
-```bash
-python build_index_new.py
-```
-
-### 4. Run the Application
+#### Option A: Local Development
 
 ```bash
 # Easy way
@@ -116,11 +111,36 @@ python run.py
 python -m uvicorn app.main:app --reload
 ```
 
-### 5. Access the API
+#### Option B: Docker (Recommended)
 
+```bash
+# Copy environment file
+cp .env.example .env
+# Edit .env with your GROQ_API_KEY
+
+# Build and run
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+### 4. Access the Application
+
+- **Web UI**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/api/health
 - **Stats**: http://localhost:8000/api/stats
+
+### 5. Admin Features
+
+1. Click "Admin Login" in the web UI
+2. Enter password (default: `admin123`, change via `ADMIN_PASSWORD` env var)
+3. Upload documents as admin → they persist forever
+4. Regular users get temporary sessions (auto-cleanup)
 
 ## 📡 API Endpoints
 
@@ -245,14 +265,60 @@ SELECT * FROM query_logs ORDER BY timestamp DESC LIMIT 10;
 - Perfect for tracking query → source mapping
 - Easy to query for analytics
 
-## 🔮 Roadmap
+## � Deployment
 
-- [ ] PDF extraction with pypdf
-- [ ] DOCX extraction with python-docx  
+### Railway (Recommended)
+
+1. **Push to GitHub**
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+2. **Deploy on Railway**
+- Go to [railway.app](https://railway.app)
+- Click "New Project" → "Deploy from GitHub repo"
+- Select your repo
+- Add environment variable: `GROQ_API_KEY=your_key`
+- Add environment variable: `ADMIN_PASSWORD=your_secure_password`
+- Railway will auto-detect Dockerfile and deploy!
+
+3. **Configure Volumes** (Optional - for persistence)
+- Add volumes for `/app/chroma_store`, `/app/uploads`, `/app/logs`
+
+### Render
+
+1. Create new Web Service
+2. Connect GitHub repo
+3. Set build command: `pip install -r requirements.txt`
+4. Set start command: `python run.py`
+5. Add environment variables
+
+### Docker on VPS
+
+```bash
+# On your server
+git clone <your-repo>
+cd Rag
+cp .env.example .env
+# Edit .env with your keys
+
+docker-compose up -d
+```
+
+## �🔮 Roadmap
+
+- [x] PDF extraction with pypdf
+- [x] DOCX extraction with python-docx  
+- [x] Session-based multi-user isolation
+- [x] Cache hit/miss metrics
+- [x] Docker deployment
 - [ ] Redis cache integration
 - [ ] Semantic chunking (sentence-aware)
 - [ ] Re-ranking for better retrieval
-- [ ] Docker deployment
 - [ ] CI/CD pipeline
 - [ ] Monitoring dashboard
 
@@ -279,15 +345,24 @@ MIT License - Feel free to use for interviews and projects!
 This project demonstrates:
 - Clean architecture (services, models, routes)
 - API design principles
-- Caching strategies
+- Multi-user session management
+- Caching strategies with metrics
 - Error handling & validation
 - Logging & observability
 - Async processing
-- File upload handling
-- Database integration
+- File upload handling (TXT, PDF, DOCX)
+- Database integration (SQLite + ChromaDB)
+- Docker containerization
+- Security (session isolation, admin auth)
 
 **"How would you scale this?"**
-> Redis for distributed cache, move to Qdrant/Pinecone for vector DB, add load balancer, use S3 for files, monitor with Prometheus.
+> Redis for distributed cache, move to Qdrant/Pinecone for vector DB, add load balancer, use S3 for files, implement proper auth (JWT), add rate limiting, monitor with Prometheus/Grafana, use Kubernetes for orchestration.
+
+**"How do you handle multiple users?"**
+> Session-based isolation - each user gets a unique session ID stored in cookies. Admin uploads persist forever (is_admin=true metadata), user uploads are session-scoped. Vector search filters by session_id OR is_admin=true, ensuring users only see their docs + admin knowledge base.
+
+**"Why this caching strategy?"**
+> Two-tier caching: 1) Embedding cache to avoid re-encoding same text, 2) Query response cache to skip LLM calls. Track hit/miss metrics (hit_rate_percent) for optimization insights. In-memory for MVP, Redis for production.
 
 ---
 
