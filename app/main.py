@@ -33,14 +33,22 @@ app.include_router(query.router, prefix=settings.API_PREFIX, tags=["Query"])
 app.include_router(upload.router, prefix=settings.API_PREFIX, tags=["Upload"])
 app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 
+@app.get("/ping")
+async def ping():
+    """Ultra-fast ping endpoint for Railway health checks"""
+    return {"status": "ok"}
+
 @app.get("/")
 async def root():
     """Serve the frontend or return API info"""
     # Try to serve index.html if it exists
-    if os.path.exists("templates/index.html"):
-        return FileResponse("templates/index.html")
+    try:
+        if os.path.exists("templates/index.html"):
+            return FileResponse("templates/index.html")
+    except Exception as e:
+        logger.warning(f"Could not serve index.html: {e}")
     
-    # Otherwise return API info
+    # Fallback to API info
     return {
         "message": f"{settings.APP_NAME} API",
         "version": settings.VERSION,
@@ -58,15 +66,7 @@ async def startup_event():
     """Run on application startup"""
     logger.info(f"Starting {settings.APP_NAME} v{settings.VERSION}")
     logger.info(f"Docs available at /docs")
-    
-    # Clean up old user session documents
-    try:
-        from app.services.vector_service import vector_service
-        deleted = vector_service.cleanup_old_sessions(settings.SESSION_EXPIRY)
-        if deleted > 0:
-            logger.info(f"Startup cleanup: Removed {deleted} expired user session documents")
-    except Exception as e:
-        logger.error(f"Error during startup cleanup: {e}")
+    logger.info("Ready to accept requests")
 
 @app.on_event("shutdown")
 async def shutdown_event():
