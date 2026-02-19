@@ -1,8 +1,25 @@
-# 🤖 RAG System - Production Ready
+# 🤖 NeuralDocs - Production RAG System
 
-A **scalable, production-ready RAG (Retrieval-Augmented Generation)** system with FastAPI, ChromaDB, and intelligent caching. Built with clean architecture for interviews and real-world deployment.
+A **scalable, multi-user RAG (Retrieval-Augmented Generation)** system with session isolation, intelligent caching, and production-grade architecture.
 
-## ✨ Key Features
+🌍 **[Live Demo](https://neuraldocs-production.up.railway.app/)** | 📚 **[API Docs](https://neuraldocs-production.up.railway.app/docs)** | 🐙 **[GitHub](https://github.com/shivam1342/neuraldocs-rag-system)**
+
+## 🎯 Executive Summary
+
+Production-ready RAG system featuring **session-isolated multi-user architecture** with metadata-filtered vector retrieval. Deployed on Railway with optimized Docker image (76% size reduction), lazy-loaded embeddings (92% startup improvement), and dual-tier caching for sub-200ms cached responses.
+
+**Key Metrics:**
+- ⚡ **<1s startup** (lazy loading: 13s → <1s)
+- 🐳 **2GB Docker image** (optimized from 8.3GB, CPU-only PyTorch)
+- 💾 **<200ms cached queries** (session-aware caching with hit rate tracking)
+- 👥 **Multi-user isolation** (cookie-based sessions with metadata filtering)
+- 🧹 **Auto-cleanup** (1,186 expired documents removed on deployment)
+
+**Tech Stack:** FastAPI • ChromaDB • Sentence-Transformers • Groq LLaMA-3.3-70B • Docker • Railway
+
+---
+
+## ✨ Core Features
 
 - 📁 **Multi-Format Upload** - Upload TXT, PDF, DOCX with async processing
 - 🔍 **Semantic Search** - Find relevant content using vector embeddings
@@ -202,9 +219,7 @@ Response:
 }
 ```
 
-## 🧪 Testing
-
-Try these example queries after building the index:
+## 🧪 Quick Test
 
 ```bash
 curl -X POST http://localhost:8000/api/query \
@@ -214,102 +229,74 @@ curl -X POST http://localhost:8000/api/query \
 
 ## ⚙️ Configuration
 
-Edit `app/core/config.py` to customize:
-
-- `MAX_FILE_SIZE`: Upload limit (default: 10MB)
-- `CHUNK_SIZE`: Text chunk size (default: 300)
-- `TOP_K`: Number of results retrieved (default: 3)
-- `CACHE_TTL`: Cache timeout (default: 3600 seconds)
-- `EMBEDDING_MODEL`: HuggingFace model (default: all-MiniLM-L6-v2)
+Key settings in `app/core/config.py`: `MAX_FILE_SIZE` (10MB), `CHUNK_SIZE` (300), `TOP_K` (3), `CACHE_TTL` (3600s), `EMBEDDING_MODEL` (all-MiniLM-L6-v2)
 
 ## 📊 Monitoring
 
-### View Logs
+**Logs:** `tail -f logs/rag_*.log`  
+**Stats:** http://localhost:8000/api/stats (docs count, queries, cache metrics)  
+**Audit DB:** `sqlite3 audit.db` → Query `query_logs` table for full history
+
+## 🎯 Architecture Decisions (Interview Ready)
+
+**Clean Architecture:** Services layer (embedding, vector, LLM, cache, document) → API routes → FastAPI app  
+**Multi-User Isolation:** Cookie-based sessions + metadata filtering (`session_id OR is_admin=true`)  
+**Performance:** Lazy loading (13s→<1s), dual-tier caching (embedding + query response), background file processing  
+**Scalability:** ChromaDB (local MVP) → Easily migrate to Qdrant/Pinecone/Weaviate for production scale
+
+### Interview Q&A
+
+**"How would you scale this?"**
+> Redis for distributed cache, Qdrant/Pinecone for vector DB, S3 for file storage, JWT auth, rate limiting, Prometheus/Grafana monitoring, Kubernetes orchestration, CDN for static assets.
+
+**"How do you handle multiple users?"**
+> Session-based isolation with UUID cookies. Admin uploads persist forever (`is_admin=true`), user uploads are session-scoped. Vector search filters by `session_id OR is_admin=true` in ChromaDB metadata, ensuring zero cross-user data leakage.
+
+**"Why lazy loading for embeddings?"**
+> Railway health checks timeout if startup >30s. Original model loading took 13s, failing health checks. Lazy loading defers to first query, enabling <1s startup and reliable deployments. One-time 13s delay acceptable vs deployment failure.
+
+**"Explain the caching strategy"**
+> Two-tier: (1) Embedding cache (avoid re-encoding same text), (2) Query response cache with session isolation (MD5 hash of `query:session_id`). Track hit/miss metrics for optimization insights. In-memory for MVP, Redis for production horizontal scaling.
+
+---
+
+## 📊 Skills Demonstrated
+
+- **Backend:** RESTful API design, async processing, file handling (multipart/form-data)
+- **AI/ML:** RAG pipelines, vector embeddings (384-dim), semantic search, LLM integration
+- **Database:** ChromaDB (vector DB), SQLite (audit logs), persistent storage strategies
+- **DevOps:** Docker optimization (8.3GB→2GB), Railway deployment, environment management
+- **Architecture:** Clean architecture, service layer pattern, session management, caching strategies
+- **Production:** Health checks, monitoring, logging, error handling, security (session isolation)
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+**Built by [Shivam Singh](https://github.com/shivam1342)** | Open for interviews and collaborations
+
+## 🚀 Deployment
+
+**Railway (Current Production):**
 ```bash
-tail -f logs/rag_*.log
+# Push to GitHub, connect repo on railway.app
+# Set env vars: GROQ_API_KEY, ADMIN_PASSWORD
+# Auto-deploys from main branch
 ```
 
-### Check Stats
-Visit http://localhost:8000/api/stats to see:
-- Total documents indexed
-- Total queries processed
-- Cache statistics
-
-### Audit Database
-Query logs are stored in `audit.db`:
-```sql
-sqlite3 audit.db
-SELECT * FROM query_logs ORDER BY timestamp DESC LIMIT 10;
-```
-
-## 🎯 Key Design Decisions (Interview Ready)
-
-### Why FastAPI?
-- Async support for background file processing
-- Auto-generated OpenAPI docs
-- Type hints with Pydantic validation
-- Better performance than Flask
-
-### Why ChromaDB?
-- Free and local (no API costs)
-- Simple persistent storage
-- Easy to scale to Qdrant/Pinecone later
-
-### Why In-Memory Cache?
-- Fast prototype (Redis later)
-- 80% cache hit rate reduces LLM calls
-- Easy to upgrade to Redis for distributed caching
-
-### Why SQLite for Audit Logs?
-- Lightweight, zero-config
-- Perfect for tracking query → source mapping
-- Easy to query for analytics
-
-## � Deployment
-
-### Railway (Recommended)
-
-1. **Push to GitHub**
+**Docker Anywhere:**
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin <your-repo-url>
-git push -u origin main
-```
-
-2. **Deploy on Railway**
-- Go to [railway.app](https://railway.app)
-- Click "New Project" → "Deploy from GitHub repo"
-- Select your repo
-- Add environment variable: `GROQ_API_KEY=your_key`
-- Add environment variable: `ADMIN_PASSWORD=your_secure_password`
-- Railway will auto-detect Dockerfile and deploy!
-
-3. **Configure Volumes** (Optional - for persistence)
-- Add volumes for `/app/chroma_store`, `/app/uploads`, `/app/logs`
-
-### Render
-
-1. Create new Web Service
-2. Connect GitHub repo
-3. Set build command: `pip install -r requirements.txt`
-4. Set start command: `python run.py`
-5. Add environment variables
-
-### Docker on VPS
-
-```bash
-# On your server
-git clone <your-repo>
-cd Rag
-cp .env.example .env
-# Edit .env with your keys
-
 docker-compose up -d
+# Edit .env with your GROQ_API_KEY first
 ```
 
-## �🔮 Roadmap
+**Key optimizations:** Dynamic PORT binding, lazy model loading for health checks, CPU-only PyTorch build
+
+## 🔮 Roadmap
 
 - [x] PDF extraction with pypdf
 - [x] DOCX extraction with python-docx  
@@ -322,70 +309,52 @@ docker-compose up -d
 - [ ] CI/CD pipeline
 - [ ] Monitoring dashboard
 
-## 🐛 Troubleshooting
+## 🐛 Common Issues
 
-### "Invalid API Key" error
-- Check your `.env` file has `GROQ_API_KEY`
-- Verify key at https://console.groq.com
-
-### "No documents found" error
-- Run `python build_index_new.py` first
-- Or upload files via `/api/upload` endpoint
-
-### Import errors
-- Make sure virtual environment is activated
-- Reinstall: `pip install -r requirements.txt`
-
-## 📄 License
-
-MIT License - Feel free to use for interviews and projects!
-
-## 🙋 Interview Questions?
-
-This project demonstrates:
-- Clean architecture (services, models, routes)
-- API design principles
-- Multi-user session management
-- Caching strategies with metrics
-- Error handling & validation
-- Logging & observability
-- Async processing
-- File upload handling (TXT, PDF, DOCX)
-- Database integration (SQLite + ChromaDB)
-- Docker containerization
-- Security (session isolation, admin auth)
-
-**"How would you scale this?"**
-> Redis for distributed cache, move to Qdrant/Pinecone for vector DB, add load balancer, use S3 for files, implement proper auth (JWT), add rate limiting, monitor with Prometheus/Grafana, use Kubernetes for orchestration.
-
-**"How do you handle multiple users?"**
-> Session-based isolation - each user gets a unique session ID stored in cookies. Admin uploads persist forever (is_admin=true metadata), user uploads are session-scoped. Vector search filters by session_id OR is_admin=true, ensuring users only see their docs + admin knowledge base.
-
-**"Why this caching strategy?"**
-> Two-tier caching: 1) Embedding cache to avoid re-encoding same text, 2) Query response cache to skip LLM calls. Track hit/miss metrics (hit_rate_percent) for optimization insights. In-memory for MVP, Redis for production.
+**"Invalid API Key"** → Check `.env` has `GROQ_API_KEY` (no spaces, no quotes)  
+**"No documents found"** → Upload files via `/api/upload` or login as admin  
+**Import errors** → Activate venv: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
 
 ---
 
-Built with ❤️ for interviews and production## 🔒 Security Notes
+## 🎯 Architecture Decisions (Interview Ready)
 
-- Never commit your `.env` file
-- Keep your Groq API key secret
-- The `.gitignore` file is configured to exclude sensitive files
+**Clean Architecture:** Services layer (embedding, vector, LLM, cache, document) → API routes → FastAPI app  
+**Multi-User Isolation:** Cookie-based sessions + metadata filtering (`session_id OR is_admin=true`)  
+**Performance:** Lazy loading (13s→<1s), dual-tier caching (embedding + query response), background file processing  
+**Scalability:** ChromaDB (local MVP) → Easily migrate to Qdrant/Pinecone/Weaviate for production scale
 
-## 🤝 Contributing
+### Interview Q&A
 
-Feel free to fork this project and submit pull requests!
+**"How would you scale this?"**
+> Redis for distributed cache, Qdrant/Pinecone for vector DB, S3 for file storage, JWT auth, rate limiting, Prometheus/Grafana monitoring, Kubernetes orchestration, CDN for static assets.
+
+**"How do you handle multiple users?"**
+> Session-based isolation with UUID cookies. Admin uploads persist forever (`is_admin=true`), user uploads are session-scoped. Vector search filters by `session_id OR is_admin=true` in ChromaDB metadata, ensuring zero cross-user data leakage.
+
+**"Why lazy loading for embeddings?"**
+> Railway health checks timeout if startup >30s. Original model loading took 13s, failing health checks. Lazy loading defers to first query, enabling <1s startup and reliable deployments. One-time 13s delay acceptable vs deployment failure.
+
+**"Explain the caching strategy"**
+> Two-tier: (1) Embedding cache (avoid re-encoding same text), (2) Query response cache with session isolation (MD5 hash of `query:session_id`). Track hit/miss metrics for optimization insights. In-memory for MVP, Redis for production horizontal scaling.
+
+---
+
+## 📊 Skills Demonstrated
+
+- **Backend:** RESTful API design, async processing, file handling (multipart/form-data)
+- **AI/ML:** RAG pipelines, vector embeddings (384-dim), semantic search, LLM integration
+- **Database:** ChromaDB (vector DB), SQLite (audit logs), persistent storage strategies
+- **DevOps:** Docker optimization (8.3GB→2GB), Railway deployment, environment management
+- **Architecture:** Clean architecture, service layer pattern, session management, caching strategies
+- **Production:** Health checks, monitoring, logging, error handling, security (session isolation)
+
+---
 
 ## 📄 License
 
 MIT License
 
-## 🙏 Acknowledgments
-
-- [Groq](https://groq.com/) for fast LLM inference
-- [ChromaDB](https://www.trychroma.com/) for vector storage
-- [Sentence Transformers](https://www.sbert.net/) for embeddings
-
 ---
 
-Made with ❤️ for learning RAG systems
+**Built by [Shivam Singh](https://github.com/shivam1342)** | Open for interviews and collaborations
