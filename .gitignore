@@ -27,7 +27,7 @@ ARCHITECTURE.md
 .idea/
 *.swp
 *.swo
-.md
+*.md
 
 # OS
 .DS_Store
