@@ -241,10 +241,5 @@ GET /api/logs     # Query history
 
 ---
 
-## 📄 License
-
-MIT License
-
----
 
 **⭐ Star this repo if you found it valuable!**
